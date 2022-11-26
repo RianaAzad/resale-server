@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -102,6 +102,59 @@ async function run(){
             const result = await usersCollection.insertOne(user);
             res.send(result);
         })
+
+        // Get users
+        app.get('/users', async(req, res)=> {
+            const query = {};
+            const users = await usersCollection.find(query).toArray();
+            res.send(users);
+        })
+
+        // Update Admin
+        app.put('/users/admin/:id', verifyJWT, async(req, res)=>{
+            const decodedEmail = req.decoded.email;
+            const query = {email: decodedEmail};
+            const user = await usersCollection.findOne(query);
+            if(user?.role !== 'admin'){
+                return res.status(403).send({message: 'Forbidden Access'})
+            }
+
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id)}
+            const options = {upsert: true};
+            const updatedDoc = {
+                $set: {
+                    role: 'admin'
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        })
+
+        // Check admins
+        app.get('/users/admin/:email', async(req, res)=>{
+            const email = req.params.email;
+            const query = { email }
+            const user = await usersCollection.findOne(query);
+            res.send({isAdmin: user?.role === 'admin'})
+        })
+
+        // Check Sellers
+        app.get('/users/seller/:email', async(req, res)=>{
+            const email = req.params.email;
+            const query = { email }
+            const user = await usersCollection.findOne(query);
+            res.send({isSeller: user?.role === 'Seller'})
+        })
+
+        // Check Buyers
+        app.get('/users/buyer/:email', async(req, res)=>{
+            const email = req.params.email;
+            const query = { email }
+            const user = await usersCollection.findOne(query);
+            res.send({isBuyer: user?.role === 'Buyer'})
+        })
+
 
     }
     finally{
