@@ -60,6 +60,20 @@ async function run(){
             const cursor = productsCollection.find(query)
             const products = await cursor.toArray();
             res.send(products)
+            console.log(products)
+        })
+// ************
+        app.get('/sellerProducts', async(req, res)=>{
+            let query = {};
+            if(req.query.seller){
+                query = {
+                    seller: req.query.seller
+                }
+            }
+            const cursor = productsCollection.find(query)
+            const products = await cursor.toArray();
+            res.send(products)
+            console.log(products)
         })
 
         // Post booking information
