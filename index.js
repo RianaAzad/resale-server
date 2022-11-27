@@ -52,9 +52,9 @@ async function run(){
         // Get products 
         app.get('/products', async(req, res)=>{
             let query = {};
-            if(req.query.categoryName){
+            if(req.query.category){
                 query = {
-                    categoryName: req.query.categoryName
+                    category: req.query.category
                 }
             }
             const cursor = productsCollection.find(query)
@@ -153,6 +153,13 @@ async function run(){
             const query = { email }
             const user = await usersCollection.findOne(query);
             res.send({isBuyer: user?.role === 'Buyer'})
+        })
+
+        // Add product
+        app.post('/products', async(req, res)=>{
+            const product = req.body;
+            const result = await productsCollection.insertOne(product);
+            res.send(result);
         })
 
 
