@@ -60,7 +60,6 @@ async function run(){
             const cursor = productsCollection.find(query)
             const products = await cursor.toArray();
             res.send(products)
-            console.log(products)
         })
 // ************
         app.get('/sellerProducts', async(req, res)=>{
@@ -73,13 +72,11 @@ async function run(){
             const cursor = productsCollection.find(query)
             const products = await cursor.toArray();
             res.send(products)
-            console.log(products)
         })
 
         // Post booking information
         app.post('/bookings', async(req, res)=>{
             const booking = req.body;
-            console.log(booking);
             const result = await bookingsCollection.insertOne(booking);
             res.send(result);
         })
@@ -106,7 +103,6 @@ async function run(){
                 const token = jwt.sign({email}, process.env.ACCESS_TOKEN, {expiresIn: '2h'})
                 return res.send({accessToken: token});
             }
-            console.log(user)
             res.status(403).send({accessToken: ''})
         })
 
@@ -144,6 +140,23 @@ async function run(){
             const result = await usersCollection.updateOne(filter, updatedDoc, options);
             res.send(result);
         })
+        
+        // ****Advertised Product
+        app.put('/products/:id', verifyJWT, async(req, res)=>{
+            const id = req.params.id;
+            const query = { _id: ObjectId(id)}
+            const advertisedProduct = await productsCollection.findOne(query);
+            const options = {upsert: true};
+           
+            const updatedDoc = {
+                $set: {
+                    advertise: true
+                }
+            }
+            const result = await productsCollection.updateOne(advertisedProduct, updatedDoc, options);
+            res.send(result);
+            console.log(result)
+        })
 
         // Check admins
         app.get('/users/admin/:email', async(req, res)=>{
@@ -173,6 +186,14 @@ async function run(){
         app.post('/products', async(req, res)=>{
             const product = req.body;
             const result = await productsCollection.insertOne(product);
+            res.send(result);
+        })
+
+        // Remove user
+        app.delete('/users/:id', async(req, res)=>{
+            const id = req.params.id;
+            const query = { _id: ObjectId(id)}
+            const result = await usersCollection.deleteOne(query);
             res.send(result);
         })
 
